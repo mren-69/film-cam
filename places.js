@@ -1,0 +1,143 @@
+// オフラインで地名を出すための簡易データ: [地名, 都道府県, 緯度, 経度]
+// 近くに登録地点がないときは都道府県名だけを使う。足りない場所はここに追加すればOK。
+const PLACES = [
+  // 北海道・東北
+  ['SAPPORO', 'HOKKAIDO', 43.062, 141.354],
+  ['OTARU', 'HOKKAIDO', 43.190, 140.994],
+  ['HAKODATE', 'HOKKAIDO', 41.769, 140.729],
+  ['ASAHIKAWA', 'HOKKAIDO', 43.770, 142.365],
+  ['FURANO', 'HOKKAIDO', 43.342, 142.383],
+  ['KUSHIRO', 'HOKKAIDO', 42.985, 144.381],
+  ['AOMORI', 'AOMORI', 40.824, 140.740],
+  ['MORIOKA', 'IWATE', 39.702, 141.154],
+  ['SENDAI', 'MIYAGI', 38.268, 140.869],
+  ['AKITA', 'AKITA', 39.720, 140.103],
+  ['YAMAGATA', 'YAMAGATA', 38.240, 140.363],
+  ['FUKUSHIMA', 'FUKUSHIMA', 37.750, 140.468],
+
+  // 関東
+  ['MITO', 'IBARAKI', 36.341, 140.447],
+  ['TSUKUBA', 'IBARAKI', 36.083, 140.077],
+  ['UTSUNOMIYA', 'TOCHIGI', 36.555, 139.883],
+  ['NIKKO', 'TOCHIGI', 36.750, 139.598],
+  ['MAEBASHI', 'GUNMA', 36.391, 139.061],
+  ['KUSATSU', 'GUNMA', 36.621, 138.596],
+  ['SAITAMA', 'SAITAMA', 35.857, 139.649],
+  ['KAWAGOE', 'SAITAMA', 35.925, 139.486],
+  ['CHIBA', 'CHIBA', 35.605, 140.123],
+  ['MAIHAMA', 'CHIBA', 35.633, 139.880],
+  ['SHINJUKU', 'TOKYO', 35.690, 139.700],
+  ['SHIBUYA', 'TOKYO', 35.658, 139.702],
+  ['HARAJUKU', 'TOKYO', 35.670, 139.703],
+  ['GINZA', 'TOKYO', 35.672, 139.765],
+  ['MARUNOUCHI', 'TOKYO', 35.681, 139.767],
+  ['ASAKUSA', 'TOKYO', 35.711, 139.797],
+  ['IKEBUKURO', 'TOKYO', 35.729, 139.711],
+  ['SHIMOKITAZAWA', 'TOKYO', 35.661, 139.668],
+  ['ODAIBA', 'TOKYO', 35.627, 139.776],
+  ['KICHIJOJI', 'TOKYO', 35.703, 139.580],
+  ['YOKOHAMA', 'KANAGAWA', 35.457, 139.632],
+  ['KAMAKURA', 'KANAGAWA', 35.319, 139.547],
+  ['ENOSHIMA', 'KANAGAWA', 35.300, 139.480],
+  ['HAKONE', 'KANAGAWA', 35.233, 139.107],
+
+  // 中部
+  ['NIIGATA', 'NIIGATA', 37.902, 139.023],
+  ['TOYAMA', 'TOYAMA', 36.695, 137.211],
+  ['KANAZAWA', 'ISHIKAWA', 36.594, 136.626],
+  ['FUKUI', 'FUKUI', 36.065, 136.222],
+  ['KOFU', 'YAMANASHI', 35.664, 138.568],
+  ['KAWAGUCHIKO', 'YAMANASHI', 35.497, 138.756],
+  ['NAGANO', 'NAGANO', 36.651, 138.181],
+  ['MATSUMOTO', 'NAGANO', 36.238, 137.972],
+  ['KARUIZAWA', 'NAGANO', 36.348, 138.597],
+  ['GIFU', 'GIFU', 35.391, 136.722],
+  ['TAKAYAMA', 'GIFU', 36.146, 137.252],
+  ['SHIRAKAWAGO', 'GIFU', 36.257, 136.906],
+  ['SHIZUOKA', 'SHIZUOKA', 34.977, 138.383],
+  ['HAMAMATSU', 'SHIZUOKA', 34.710, 137.726],
+  ['ATAMI', 'SHIZUOKA', 35.096, 139.072],
+  ['NAGOYA', 'AICHI', 35.181, 136.906],
+
+  // 近畿
+  ['TSU', 'MIE', 34.730, 136.509],
+  ['ISE', 'MIE', 34.455, 136.725],
+  ['OTSU', 'SHIGA', 35.004, 135.868],
+  ['KYOTO', 'KYOTO', 34.985, 135.758],
+  ['GION', 'KYOTO', 35.004, 135.775],
+  ['ARASHIYAMA', 'KYOTO', 35.014, 135.678],
+  ['FUSHIMI', 'KYOTO', 34.967, 135.773],
+  ['UJI', 'KYOTO', 34.884, 135.800],
+  ['UMEDA', 'OSAKA', 34.702, 135.497],
+  ['NAMBA', 'OSAKA', 34.665, 135.501],
+  ['SHINSAIBASHI', 'OSAKA', 34.674, 135.501],
+  ['TENNOJI', 'OSAKA', 34.646, 135.514],
+  ['OSAKAJO', 'OSAKA', 34.687, 135.526],
+  ['UNIVERSAL CITY', 'OSAKA', 34.666, 135.432],
+  ['HIGASHIOSAKA', 'OSAKA', 34.652, 135.590],
+  ['YAO', 'OSAKA', 34.627, 135.601],
+  ['SAKAI', 'OSAKA', 34.573, 135.483],
+  ['TOYONAKA', 'OSAKA', 34.781, 135.470],
+  ['SUITA', 'OSAKA', 34.761, 135.516],
+  ['HIRAKATA', 'OSAKA', 34.814, 135.650],
+  ['TAKATSUKI', 'OSAKA', 34.846, 135.617],
+  ['KOBE', 'HYOGO', 34.693, 135.195],
+  ['NISHINOMIYA', 'HYOGO', 34.737, 135.342],
+  ['AMAGASAKI', 'HYOGO', 34.733, 135.407],
+  ['HIMEJI', 'HYOGO', 34.815, 134.685],
+  ['NARA', 'NARA', 34.685, 135.830],
+  ['IKOMA', 'NARA', 34.692, 135.700],
+  ['WAKAYAMA', 'WAKAYAMA', 34.226, 135.167],
+  ['SHIRAHAMA', 'WAKAYAMA', 33.678, 135.348],
+
+  // 中国・四国
+  ['TOTTORI', 'TOTTORI', 35.501, 134.235],
+  ['MATSUE', 'SHIMANE', 35.468, 133.049],
+  ['IZUMO', 'SHIMANE', 35.367, 132.755],
+  ['OKAYAMA', 'OKAYAMA', 34.662, 133.935],
+  ['KURASHIKI', 'OKAYAMA', 34.585, 133.772],
+  ['HIROSHIMA', 'HIROSHIMA', 34.396, 132.459],
+  ['MIYAJIMA', 'HIROSHIMA', 34.296, 132.320],
+  ['ONOMICHI', 'HIROSHIMA', 34.409, 133.205],
+  ['YAMAGUCHI', 'YAMAGUCHI', 34.186, 131.471],
+  ['TOKUSHIMA', 'TOKUSHIMA', 34.066, 134.559],
+  ['TAKAMATSU', 'KAGAWA', 34.340, 134.043],
+  ['NAOSHIMA', 'KAGAWA', 34.460, 133.995],
+  ['MATSUYAMA', 'EHIME', 33.839, 132.766],
+  ['KOCHI', 'KOCHI', 33.559, 133.531],
+
+  // 九州・沖縄
+  ['FUKUOKA', 'FUKUOKA', 33.590, 130.399],
+  ['KOKURA', 'FUKUOKA', 33.886, 130.882],
+  ['SAGA', 'SAGA', 33.249, 130.299],
+  ['NAGASAKI', 'NAGASAKI', 32.750, 129.878],
+  ['SASEBO', 'NAGASAKI', 33.180, 129.715],
+  ['KUMAMOTO', 'KUMAMOTO', 32.803, 130.708],
+  ['OITA', 'OITA', 33.238, 131.613],
+  ['BEPPU', 'OITA', 33.285, 131.491],
+  ['YUFUIN', 'OITA', 33.266, 131.369],
+  ['MIYAZAKI', 'MIYAZAKI', 31.911, 131.424],
+  ['KAGOSHIMA', 'KAGOSHIMA', 31.560, 130.558],
+  ['NAHA', 'OKINAWA', 26.212, 127.681],
+  ['CHATAN', 'OKINAWA', 26.309, 127.763],
+  ['NAGO', 'OKINAWA', 26.592, 127.977],
+  ['MIYAKOJIMA', 'OKINAWA', 24.805, 125.281],
+  ['ISHIGAKI', 'OKINAWA', 24.340, 124.156],
+];
+
+// 緯度経度から一番近い地名を探してローマ字の表示名を返す
+function lookupPlace(lat, lon) {
+  let best = null;
+  let bestKm = Infinity;
+  const cosLat = Math.cos(lat * Math.PI / 180);
+  for (const p of PLACES) {
+    const dy = (p[2] - lat) * 111;
+    const dx = (p[3] - lon) * 111 * cosLat;
+    const km = Math.sqrt(dx * dx + dy * dy);
+    if (km < bestKm) { bestKm = km; best = p; }
+  }
+  if (!best || bestKm > 200) return { label: '', km: bestKm };
+  const [name, pref] = best;
+  if (bestKm <= 10) return { label: name === pref ? name : `${name}, ${pref}`, km: bestKm };
+  return { label: pref, km: bestKm };
+}
